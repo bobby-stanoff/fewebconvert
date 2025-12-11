@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Tools Suite</title>
+  <link rel="stylesheet" href="./style/global.css">
+  <style>
+   
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .card {
+      background: var(--bg-panel);
+      padding: 2rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+    .card h3 { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <nav class="nav-header">
+    <div class="logo">MediaTools</div>
+  </nav>
+
+  <main class="container">
+    <h1>Select a Tool</h1>
+    <p style="color: var(--text-muted);">Secure, browser-based media processing.</p>
+
+    <div class="tool-grid">
+      <a href="./video.html" class="card">
+        <h3>🎬 Video Processor</h3>
+        <p class="text-muted">Convert formats, compress file size, and trim videos.</p>
+      </a>
+
+      <a href="#" class="card" style="opacity: 0.5; cursor: not-allowed;">
+        <h3>🖼️ Image Editor (Coming Soon)</h3>
+        <p class="text-muted">Resize, crop, and filter images.</p>
+      </a>
+    </div>
+  </main>
+
+</body>
+</html>
