@@ -55,7 +55,7 @@ export interface ImageConfig {
 export interface VideoJobRequest {
   kind: 'video'; 
   fileId: string;
-  operation: 'convert' | 'trim';
+  operation: 'convert';
   config: VideoConfig;
 }
 
@@ -84,8 +84,8 @@ export interface JobResponse {
 export interface JobStatusResponse {
   id: string;
   status: JobStatus;
-  progress: number; // 0-100
-  resultUrl?: string; // Signed URL for download
+  progress: number; 
+  resultUrl?: string; 
   error?: string;
 }
 
@@ -93,10 +93,12 @@ export interface VideoAppState {
   currentFile: File | null;
   fileId: string | null;
   videoDuration: number;
-  
-  // We strictly use VideoConfig here
+  // strictly use VideoConfig here
   config: VideoConfig; 
 
   isProcessing: boolean;
+  isDragging: boolean;
+  activeHandle: string | null;
 }
 export const backendURL = "http://localhost:3000";
+export const MAX_FILE_SIZE = 1* 1024 *1024 * 1000;

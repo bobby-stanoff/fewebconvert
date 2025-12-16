@@ -13,32 +13,84 @@
 
     <nav class="nav-header">
         <a href="./index.html" class="logo">MediaTools</a>
-        <span>Video Processor</span>
+        <div class="nav-mode-switcher">
+            <button class="mode-btn active">Video</button>
+            <button class="mode-btn">Image</button>
+        </div>
+        <div class="nav-actions">
+            <!-- Placeholder for export/profile if needed -->
+        </div>
     </nav>
 
     <main class="container workspace">
 
+        <!-- LEFT PANEL: Preview & Timeline -->
         <section class="preview-panel">
+
+            <!-- Drop Zone (Initial State) -->
             <div id="drop-zone" class="drop-zone">
                 <div class="icon">📂</div>
-                <h3>Click or Drag Video Here</h3>
-                <p class="text-muted">Supports MP4, MOV, WEBM</p>
+                <h3>Import Media</h3>
+                <p class="text-muted">Drag & Drop or Click to Upload</p>
                 <input type="file" id="file-input" hidden accept="video/*">
             </div>
 
             <div id="video-wrapper" class="video-wrapper hidden">
-                <video id="main-video" controls></video>
-                <div class="file-info">
-                    <span id="filename">video.mp4</span>
-                    <button id="remove-file-btn" class="btn-text">Remove</button>
+                <!-- Video Player -->
+                <div class="player-container">
+                    <video id="main-video"></video>
+                    <div class="video-overlay-controls">
+                        <button id="play-pause-btn" class="icon-btn">▶</button>
+                        <button id="remove-file-btn" class="icon-btn danger">✖</button>
+
+                    </div>
+                </div>
+
+                <!-- Simplified Trim Timeline -->
+                <div class="timeline-container">
+                    <div class="timeline-header">
+                        <span class="time-code" id="time-display">00:00 / 00:00</span>
+                    </div>
+
+                    <!-- The Interactive Track -->
+                    <div class="timeline-track" id="timeline-track">
+
+                        <!-- The Playhead (White Line) -->
+                        <div class="playhead" id="playhead"></div>
+
+                        <!-- The Selection Box (Red Area) -->
+                        <div class="selection-box" id="selection-box">
+                            <!-- Left Handle -->
+                            <div class="handle left-handle" id="handle-left">
+                                <div class="grip">||</div>
+                            </div>
+                            <!-- Right Handle -->
+                            <div class="handle right-handle" id="handle-right">
+                                <div class="grip">||</div>
+                            </div>
+                        </div>
+
+                        <!-- Background bar (The full non-selected area) -->
+                        <div class="track-background"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- RIGHT PANEL: Properties -->
         <section class="controls-panel">
+            <div class="panel-header">
+                <h2>Export Settings</h2>
+            </div>
+
+            <div class="file-info-compact hidden" id="file-info-panel">
+                <span class="badge">MP4</span>
+                <span id="filename" class="text-ellipsis">video_sample.mp4</span>
+                <button id="remove-file-btn" class="text-red">✕</button>
+            </div>
 
             <div class="form-group">
-                <h3>Target Format</h3>
+                <label>Format</label>
                 <select id="format-select">
                     <option value="mp4">MP4</option>
                     <option value="webm">WEBM</option>
@@ -48,28 +100,35 @@
             </div>
 
             <div class="form-group">
-                <h3>Compression</h3>
-                <label>Quality: <span id="quality-val">Medium</span></label>
+                <div class="range-header">
+                    <label>Compression</label>
+                    <span id="quality-val" class="highlight-text">Medium</span>
+                </div>
                 <input type="range" id="compression-slider" min="1" max="3" step="1" value="2">
+                <div class="range-labels">
+                    <span>Low</span>
+                    <span>High</span>
+                </div>
             </div>
 
             <div class="form-group">
-                <h3>Trim video(seconds)</h3>
+                <label>Precise Trim (Seconds)</label>
                 <div class="time-inputs">
-                    <div>
-              <label>Start</label>
-              <input type="number" id="trim-start" value="0" min="0">
-            </div>
-            <div>
-              <label>End</label>
-              <input type="number" id="trim-end" value="10" min="0">
-            </div>
+                    <div class="input-wrap">
+                        <span>Start</span>
+                        <input type="number" id="trim-start" value="0" min="0">
+                    </div>
+                    <div class="input-wrap">
+                        <span>End</span>
+                        <input type="number" id="trim-end" value="10" min="0">
+                    </div>
                 </div>
-                <p class="text-small text-muted">Use the video player to find timestamps.</p>
             </div>
 
             <div class="action-area">
-                <button id="process-btn" class="btn full-width" disabled>Start Processing</button>
+                <button id="process-btn" class="btn full-width" disabled>
+                    <span>EXPORT VIDEO</span>
+                </button>
             </div>
 
         </section>
