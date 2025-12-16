@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx vite build --emptyOutDir",
+    "startbuild" : "npm run build && python3 -m http.server -d dist/",
+    "dev" : "npx vite"
   },
   "author": "",
   "license": "ISC",

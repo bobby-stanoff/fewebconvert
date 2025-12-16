@@ -1,6 +1,6 @@
 import { UploadResponse, VideoAppState, VideoConfig, VideoJobRequest , JobResponse} from './shared/types';
 import "./shared/api";
-import { uploadFile } from './shared/api';
+import { createJob, uploadFile } from './shared/api';
 class VideoEditor {
   private dropZone: HTMLElement;
   private fileInput: HTMLInputElement;
@@ -94,6 +94,8 @@ class VideoEditor {
       this.state.videoDuration = this.mainVideo.duration;
       console.log(`Video duration: ${this.state.videoDuration}s`);
     });
+
+    this.processBtn.addEventListener('click', () => {this.handleProcessing()})
   }
 
   private handleFileSelect(file: File) {
@@ -114,57 +116,50 @@ class VideoEditor {
 
     console.log(`Loaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
   }
-  private handleProcessing() {
+  private async handleProcessing() {
     if(this.state.currentFile == null){
       return
     }
     this.toggleLoading(true, "Uploading...");
 
-    //const uploadResult = await uploadFile(this.state.currentFile);
-    uploadFile(this.state.currentFile).then((uploadresult : UploadResponse) => {
-      if(!uploadresult.success) console.log("file uploaded but something wrong from the server");
-      const fileid = uploadresult.data.fileId;
-      let videoConfig : VideoConfig = this.readConfigFromInputs();
-      const jobRequest: VideoJobRequest = {
-        kind: 'video',
-        fileId: fileid,
-        operation: 'convert', 
-        config: videoConfig
-      };
+    const uploadResult = await uploadFile(this.state.currentFile);
+    if(!uploadResult.success){
+      console.log("file uploaded but something wrong from the server");
+    }
+    console.log(uploadResult.data);
+    const fileid = uploadResult.data.fileId;
+    let videoConfig : VideoConfig = this.readConfigFromInputs();
+    const jobRequest: VideoJobRequest = {
+      kind: 'video',
+      fileId: fileid,
+      operation: 'convert', 
+      config: videoConfig
+    };
 
-      console.log("Sending Job Request:", jobRequest);
-
-      const jobResponse: JobResponse = await createJob(jobRequest);
-      
-      console.log("Job Started:", jobResponse);
-      this.toggleLoading(true, `Job ${jobResponse.status}! ID: ${jobResponse.jobId}`);
-    })
+      createJob(jobRequest).then((jobResponse) => {
+        console.log("Job Started:", jobResponse);
+        this.toggleLoading(true, `Job ${jobResponse.status}! ID: ${jobResponse.jobId}`);
+      }).catch(e => console.error(e));
 
   }
 
-  /**
-   * Helper: Reads DOM inputs and returns a typed Config object
-   */
   private readConfigFromInputs(): VideoConfig {
-    // 1. Quality Map
     const qualityMap: Record<string, 'low' | 'medium' | 'high'> = {
       '1': 'low',
       '2': 'medium',
       '3': 'high'
     };
-    const qualityVal = this.qualitySlider.value; // "1", "2", or "3"
+    const qualityVal = this.qualitySlider.value; 
 
-    // 2. Trim Values
     const start = parseFloat(this.trimStartInput.value) || 0;
     const end = parseFloat(this.trimEndInput.value) || this.state.videoDuration;
 
-    // Validate trim
     if (start >= end) {
       alert("Warning: Start time is greater than End time. Resetting trim.");
     }
 
     return {
-      targetFormat: this.formatSelect.value as any, // 'mp4' | 'webm' etc
+      targetFormat: this.formatSelect.value as any,
       quality: qualityMap[qualityVal] || 'medium',
       trim: {
         startTime: start,
@@ -185,7 +180,7 @@ class VideoEditor {
     this.state.currentFile = null;
     this.state.fileId = null;
     this.mainVideo.src = '';
-    this.fileInput.value = ''; // allow selecting same file again
+    this.fileInput.value = ''; 
 
     this.videoWrapper.classList.add('hidden');
     this.dropZone.classList.remove('hidden');

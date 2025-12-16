@@ -12,16 +12,13 @@ export interface FileMetadata {
 export type VideoFormat = 'mp4' | 'webm' | 'gif' | 'mp3';
 
 export interface VideoConfig {
-  // Conversion
   targetFormat?: VideoFormat;
   
-  // Compression
   quality?: 'low' | 'medium' | 'high';
   
-  // Editing
   trim?: {
-    startTime: number; // seconds
-    endTime: number;   // seconds
+    startTime: number; 
+    endTime: number;   
   };
   muteAudio?: boolean;
 }
@@ -34,7 +31,7 @@ export interface ImageConfig {
   targetFormat?: ImageFormat;
   
   // Compression
-  quality?: number; // 1-100 for images usually
+  quality?: number; 
   
   // Editing
   resize?: {
@@ -58,7 +55,7 @@ export interface ImageConfig {
 export interface VideoJobRequest {
   kind: 'video'; 
   fileId: string;
-  operation: 'convert' | 'compress' | 'trim';
+  operation: 'convert' | 'trim';
   config: VideoConfig;
 }
 
@@ -102,4 +99,4 @@ export interface VideoAppState {
 
   isProcessing: boolean;
 }
-export const backendURL = "backendURL";
+export const backendURL = "http://localhost:3000";
