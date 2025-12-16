@@ -132,6 +132,24 @@
             </div>
 
         </section>
+        <section class="progress-panel " id="progress-panel">
+            <div id="progress-view">
+                <h3 id="progress-status">Processing Video...</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progress-bar"></div>
+                </div>
+            </div>
+            <div id="done-view" class="hidden">
+                <h3>Processing Complete!</h3>
+                <div class="url-display">
+                    <span id="output-url" class="output-url">
+                        url
+                    </span>
+                    <button id="copy-url-btn" class="btn">Copy</button>
+                </div>
+            </div>
+
+        </section>
     </main>
 
     <script type="module" src="./video.ts"></script>

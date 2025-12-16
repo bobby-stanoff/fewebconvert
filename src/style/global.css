@@ -1,5 +1,4 @@
 :root {
-  /* Black & Red Theme */
   --bg-dark: #000000;
   --bg-panel: #121212;
   --bg-input: #1e1e1e;
@@ -63,7 +62,6 @@ a { text-decoration: none; color: inherit; }
     cursor: not-allowed;
 }
 
-/* Navbar */
 .nav-header {
   height: var(--header-height);
   border-bottom: 1px solid var(--border);

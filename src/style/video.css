@@ -1,7 +1,11 @@
 /* Layout */
 .workspace {
   display: grid;
-  grid-template-columns: 1fr 320px; /* Fixed width for controls */
+  grid-template-columns: 1fr 420px; /* Fixed width for controls */
+  grid-template-rows: 1fr auto; /* Add a row for the progress panel */
+  grid-template-areas:
+    "pre con"
+    "progress progress";
   gap: 1.5rem;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
@@ -94,7 +98,19 @@ video {
   cursor: pointer;
   font-size: 1.5em;
 }
-
+.output-url {
+    flex: 1;
+    padding: 12px 14px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #8ab4f8;
+    font-family: monospace;
+    font-size: 14px;
+    overflow-x: auto;
+    white-space: nowrap;
+    user-select: all;
+}
 .icon-btn:hover {
   background: rgba(255, 255, 255, 0.2);
 }
@@ -320,6 +336,57 @@ input[type="range"]::-webkit-slider-thumb {
 
 .full-width { width: 100%; }
 .hidden { display: none !important; }
+
+.progress-panel {
+    grid-area: progress;
+    background: var(--bg-panel);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+}
+
+.progress-panel h3 {
+    color: var(--text-main);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 12px;
+    background: var(--bg-input);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.progress-bar-fill {
+    width: 0%; /* Updated by JS */
+    height: 100%;
+    background: var(--primary);
+    border-radius: 6px;
+    transition: width 0.3s ease-in-out;
+}
+
+#done-view p {
+    margin-bottom: 1rem;
+}
+
+.url-display {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.url-display input {
+    flex-grow: 1;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+.url-display .btn {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    flex-shrink: 0;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {

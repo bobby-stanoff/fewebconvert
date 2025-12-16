@@ -1,6 +1,6 @@
-import { UploadResponse, VideoAppState, VideoConfig, VideoJobRequest , JobResponse, MAX_FILE_SIZE, HandleType} from './shared/types';
+import { UploadResponse, VideoAppState, VideoConfig, VideoJobRequest , JobResponse, MAX_FILE_SIZE} from './shared/types';
 import "./shared/api";
-import { createJob, uploadFile } from './shared/api';
+import { checkJob, createJob, uploadFile } from './shared/api';
 
 const dropZone = document.getElementById('drop-zone') as HTMLElement;
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -23,6 +23,12 @@ const selectionBox = document.getElementById('selection-box') as HTMLElement;
 const handleLeft = document.getElementById('handle-left') as HTMLElement;
 const handleRight = document.getElementById('handle-right') as HTMLElement;
 const playhead = document.getElementById('playhead') as HTMLElement;
+
+const progressView = document.getElementById('progress-view') as HTMLElement;
+const doneView = document.getElementById('done-view') as HTMLElement;
+const progressBarFill = document.getElementById('progress-bar') as HTMLElement;
+const progressStatus = document.getElementById('progress-status') as HTMLElement
+const outputUrl = document.getElementById('output-url') as HTMLElement;
 
 let state: VideoAppState = {
   currentFile: null,
@@ -212,7 +218,19 @@ function updateTimeText() {
     const tot = formatTime(state.videoDuration);
     timeDisplay.textContent = `${cur} / ${tot}`;
 }
-
+function updateProgressBar(percent: number, resultUrl?: string | null){
+    const clampedPercent = Math.max(0, Math.min(100, percent));
+    progressBarFill.style.width = `${clampedPercent}%`;
+    progressStatus.textContent = `Processing Video... ${clampedPercent.toFixed(0)}%`;
+    if (resultUrl) {
+        progressView.classList.add('hidden');
+        doneView.classList.remove('hidden');
+        outputUrl.innerText = resultUrl;
+    } else {
+        progressView.classList.remove('hidden');
+        doneView.classList.add('hidden');
+    }
+}
 function formatTime(s: number) {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -252,22 +270,42 @@ async function handleProcessing() {
     console.log("file uploaded but something wrong from the server");
   }
   console.log(uploadResult.data);
-  const fileid = uploadResult.data.fileId;
   let videoConfig : VideoConfig = readConfigFromInputs();
   const jobRequest: VideoJobRequest = {
     kind: 'video',
-    fileId: fileid,
+    fileId: uploadResult.data.fileId,
     operation: 'convert', 
     config: videoConfig
   };
 
-    createJob(jobRequest).then((jobResponse) => {
-      console.log("Job Started:", jobResponse);
-      toggleLoading(true, `Job ${jobResponse.status}! ID: ${jobResponse.jobId}`);
-    }).catch(e => console.error(e));
+  createJob(jobRequest).then((jobResponse) => {
+    console.log("Job Started:", jobResponse);
+    toggleLoading(true, `Converting...`);
+
+    pollJobStatus(jobResponse.jobId).then(e => {toggleLoading(false)});
+
+  }).catch(e => console.error(e));
 
 }
 
+async function pollJobStatus(jobId: string){
+  while(true){
+    const jobstatus = await checkJob(jobId)
+    if(!jobstatus || jobstatus.error){
+      console.error("something went wrong: " + jobstatus.error);
+      break
+    }
+    await new Promise(resolve => setTimeout(resolve,1000))
+    console.log(jobstatus.progress)
+    updateProgressBar(jobstatus.progress)
+    if(jobstatus.resultUrl){
+      updateProgressBar(jobstatus.progress, jobstatus.resultUrl)
+      console.log(jobstatus.resultUrl);
+      break;
+    }
+  }
+
+}
 function readConfigFromInputs(): VideoConfig {
   const qualityMap: Record<string, 'low' | 'medium' | 'high'> = {
     '1': 'low',
