@@ -1,12 +1,12 @@
 import { Cropper } from './cropper'; 
 import { checkJob, createJob, setupDropZone, uploadFile } from './shared/api';
-import { CreateJobRequest, ImageConfig, ImageFormat, MAX_FILE_SIZE } from './shared/types';
+import { CreateJobRequest, ImageConfig, ImageFormat, JobStatusResponse, MAX_FILE_SIZE } from './shared/types';
 
 
 const uploadContainer = document.getElementById('upload-container') as HTMLElement;
 const dropZone = document.getElementById('drop-zone') as HTMLElement;
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
-const removeBtn = document.getElementById('remove-file-btn') as HTMLButtonElement;
+const removeBtns = document.querySelectorAll('.remove-file-btn') as NodeListOf<HTMLButtonElement>;
 
 const imageWrapper = document.getElementById('image-wrapper') as HTMLElement;
 const imagePreviewContainer = document.querySelector('.image-preview-container') as HTMLElement;
@@ -31,6 +31,8 @@ const outputUrlSpan = document.getElementById('output-url') as HTMLElement;
 
 const formatSelect = document.getElementById('format-select') as HTMLSelectElement;
 
+const unsupportedFileContainer = document.getElementById('unsupported-file-container') as HTMLElement;
+const unsupportedFilename = document.getElementById('unsupported-filename') as HTMLElement;
 
 const state = {
     activeCropper: null as Cropper | null,
@@ -43,7 +45,7 @@ const state = {
 function initEventListeners() {
 
     setupDropZone(dropZone, fileInput, (file) => handleFileInput(file));
-    removeBtn.addEventListener('click', () => resetState());
+    removeBtns.forEach(btn => btn.addEventListener('click', () => resetState()));
     cropBtn.addEventListener('click', () => {
         if (!mainImage.src || !state.originalImageDataUrl) return;
 
@@ -107,44 +109,71 @@ function handleFileInput(file: File) {
     }
     if (!file.type.startsWith('image/')) {
         alert('Please upload a valid image file.');
+        
         return;
     }
+    
 
     state.currentFile = file;
 
-    const objectUrl = URL.createObjectURL(file);
-    const temporiginal = new Image();
-    temporiginal.src = objectUrl;
-    temporiginal.onload = () => {
-        state.originalImageDataUrl = imageToDataUrl(temporiginal);
-        mainImage.src = state.originalImageDataUrl; 
+    const fileformat = file.name.split('.').pop();
+    if(['psd', 'bpm'].includes(fileformat ?? '')){
+        
+        unsupportedFilename.textContent = file.name;
+        
+        filenameDisplay.textContent = file.name;
+        fileTypeBadge.textContent = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+        
+        unsupportedFileContainer.classList.remove('hidden'); 
+        toolsPanel.querySelectorAll('button').forEach(btn => {
+            (btn as HTMLButtonElement).disabled = true;
+        });
+     
     }
-
-    filenameDisplay.textContent = file.name;
-    fileTypeBadge.textContent = file.type.split('/')[1].toUpperCase();
-
+    else{
+        const objectUrl = URL.createObjectURL(file);
+        const temporiginal = new Image();
+        temporiginal.src = objectUrl;
+        temporiginal.onload = () => {
+            state.originalImageDataUrl = imageToDataUrl(temporiginal);
+            mainImage.src = state.originalImageDataUrl; 
+        }
+        filenameDisplay.textContent = file.name;
+        fileTypeBadge.textContent = file.type.split('/')[1].toUpperCase();
+        unsupportedFileContainer.classList.add('hidden'); 
+        imageWrapper.classList.remove('hidden'); 
+    }
+    
+    
     uploadContainer.classList.add('hidden'); 
-    imageWrapper.classList.remove('hidden'); 
     fileInfoPanel.classList.remove('hidden'); 
     processBtn.disabled = false; 
 
     console.log(`Loaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 }
 async function handleImageProcessing() {
-    if (!mainImage.src || !state.currentFile) {
+    if (!state.currentFile) {
         return;
     }
-    const editedFile = dataURLtoFile(mainImage.src, state.currentFile.name);
-    if (!editedFile) {
-        alert("Could not process the edited image.");
-        return;
+    let fileToUpload: File;
+
+    if (mainImage.src && mainImage.src.startsWith('data:')) {
+        const editedFile = dataURLtoFile(mainImage.src, state.currentFile.name);
+        if (!editedFile) {
+            alert("Could not process the edited image.");
+            return;
+        }
+        fileToUpload = editedFile;
+    } else {
+        fileToUpload = state.currentFile;
     }
+
 
     processBtn.disabled = true;
     processBtn.textContent = 'Processing...';
-    removeBtn.disabled = true;
+    removeBtns.forEach(btn => btn.disabled = true);
 
-    const uploadResult = await uploadFile(editedFile);
+    const uploadResult = await uploadFile(fileToUpload);
     if(!uploadResult.success){
         console.log("file uploaded but something wrong from the server");
         return
@@ -162,17 +191,7 @@ async function handleImageProcessing() {
         return
     }
     try{
-        await new Promise<void>((resolve, reject) => {
-            setTimeout(resolve,1000)
-        })
-        const jobresult = await checkJob(jobResponse.jobId);
-        console.log(jobresult)
-        if(jobresult.error){
-            throw new Error(jobresult.error);
-        }
-        if(jobresult.resultUrl){
-            updateResultURL(jobresult.resultUrl);
-        }
+        await pollJobStatus(jobResponse.jobId)
 
     }
     catch(e){
@@ -180,7 +199,7 @@ async function handleImageProcessing() {
     }
     processBtn.disabled = false;
     processBtn.textContent = 'CONVERT & EXPORT';
-    removeBtn.disabled = false;
+    removeBtns.forEach(btn => btn.disabled = false);
     
 }
 
@@ -229,7 +248,6 @@ function transformImage(type: 'rotate' | 'flipH' | 'flipV') {
     }
 }
 
-
 function applyCropToImage(crop: { x: number, y: number, width: number, height: number }) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -246,7 +264,21 @@ function applyCropToImage(crop: { x: number, y: number, width: number, height: n
 
     mainImage.src = canvas.toDataURL(state.currentFile?.type || 'image/png');
 }
+async function pollJobStatus(jobId: string){
+  while(true){
+    const jobstatus: JobStatusResponse = await checkJob(jobId)
+    if(!jobstatus || jobstatus.error){
+      console.error("something went wrong: " + jobstatus.error);
+      break
+    }
+    await new Promise(resolve => setTimeout(resolve,1000))
+    if(jobstatus.resultUrl){
+        updateResultURL(jobstatus.resultUrl)
+        return
+    }
+  }
 
+}
 function imageToDataUrl(img: HTMLImageElement): string {
     const canvas = document.createElement('canvas');
     canvas.width = img.naturalWidth;
@@ -313,6 +345,7 @@ function resetState() {
     imageWrapper.classList.add('hidden');
     fileInfoPanel.classList.add('hidden');
     doneView.classList.add('hidden')
+    unsupportedFileContainer.classList.add('hidden'); 
     processBtn.disabled = true;
     
     outputUrlSpan.textContent = ''

@@ -40,13 +40,26 @@
                     <input type="file" id="file-input" hidden accept="image/*">
                 </div>
             </div>
+            <div id="unsupported-file-container" class="unsupported-file-container hidden ">
+                <p>
+                    Filename: <b id="unsupported-filename">lel</b>
+                </p>
+                <p class="info-message">
+                    This file format can't be previewed in the browser, but you can still convert it to PNG, JPEG, or
+                    WEBP.
+                </p>
+                <div class="cancel-controls">
+                    <button id="remove-unsupported-btn" class="remove-file-btn icon-btn danger">✖</button>
+                </div>
+            </div>
+
 
             <div id="image-wrapper" class="image-wrapper hidden">
                 <!-- Image Preview -->
                 <div class="image-preview-container">
                     <img id="main-image" src="" alt="Image preview">
                     <div class="cancel-controls">
-                        <button id="remove-file-btn" class="icon-btn danger">✖</button>
+                        <button id="remove-file-btn" class="remove-file-btn icon-btn danger">✖</button>
                     </div>
                 </div>
 
@@ -81,7 +94,7 @@
                     <option value="webp">WEBP</option>
                 </select>
             </div>
-            
+
             <div class="action-area">
                 <button id="process-btn" class="btn full-width" disabled>
                     <span>CONVERT & EXPORT</span>

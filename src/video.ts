@@ -259,7 +259,7 @@ async function pollJobStatus(jobId: string){
       console.error("something went wrong: " + jobstatus.error);
       break
     }
-    await new Promise(resolve => setTimeout(resolve,1000))
+    await new Promise(resolve => setTimeout(resolve,2000))
     console.log(jobstatus.progress)
     updateProgressBar(jobstatus.progress)
     if(jobstatus.resultUrl){

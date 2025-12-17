@@ -23,7 +23,31 @@
   height: 100%;
   gap: 1.5rem;
 }
+.unsupported-file-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative; /* For positioning the remove button */
+}
 
+.unsupported-file-container .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.unsupported-file-container .info-message {
+    margin-top: 1rem;
+    color: #555;
+    max-width: 80%;
+}
 /* Drop Zone */
 .drop-zone {
   border: 2px dashed var(--border);
