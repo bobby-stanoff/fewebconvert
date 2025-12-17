@@ -29,16 +29,8 @@ export type ImageFormat = 'jpeg' | 'png' | 'webp' | 'avif';
 export interface ImageConfig {
   // Conversion
   targetFormat?: ImageFormat;
-  
-  // Compression
-  quality?: number; 
-  
-  // Editing
-  resize?: {
-    width?: number;
-    height?: number;
-    maintainAspectRatio?: boolean;
-  };
+  flip?: {horizontal?: boolean},
+  rotate?: number,
   crop?: {
     x: number;
     y: number;

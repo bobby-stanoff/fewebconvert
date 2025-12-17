@@ -21,22 +21,22 @@ const cropBtn = document.getElementById('crop-btn') as HTMLButtonElement;
 const processBtn = document.getElementById('process-btn') as HTMLButtonElement;
 const cancelCropBtn = document.getElementById('cancel-crop-btn') as HTMLButtonElement;
 
-let activeCropper: Cropper | null = null;
-let originalImageDataUrl: string | null = null; // Store the original image
-let currentCropPosition: { x: number, y: number, width: number, height: number } | null = null;
 const state = {
+    activeCropper: null as Cropper | null,
+    originalImageDataUrl: null as string | null,// Store the original image
+    currentCropPosition: null as  { x: number, y: number, width: number, height: number } | null ,
     currentFile: null as File | null,
 };
 
 function initEventListeners() {
 
     setupDropZone(dropZone, fileInput, (file) => handleFileInput(file));
-    removeBtn.addEventListener('click', () => resetImage());
+    removeBtn.addEventListener('click', () => resetState());
     cropBtn.addEventListener('click', () => {
-        if (!mainImage.src || !originalImageDataUrl) return;
+        if (!mainImage.src || !state.originalImageDataUrl) return;
 
-        if (activeCropper) {
-            activeCropper.apply();
+        if (state.activeCropper) {
+            state.activeCropper.apply();
 
             toolsPanel.querySelectorAll('button').forEach(btn => {
                 (btn as HTMLButtonElement).disabled = false;
@@ -46,15 +46,15 @@ function initEventListeners() {
             cancelCropBtn.classList.add('hidden');
 
         } else {
-            //originalImageDataUrl = mainImage.src;
-            mainImage.src = originalImageDataUrl;
-            activeCropper = new Cropper(imagePreviewContainer, mainImage);
-            activeCropper.setCropPostition(currentCropPosition);
-            console.log(currentCropPosition)
-            activeCropper.onApply = (cropData) => {
-                currentCropPosition = cropData;
+            
+            mainImage.src = state.originalImageDataUrl;
+            state.activeCropper = new Cropper(imagePreviewContainer, mainImage);
+            state.activeCropper.setCropPostition(state.currentCropPosition);
+            console.log(state.currentCropPosition)
+            state.activeCropper.onApply = (cropData) => {
+                state.currentCropPosition = cropData;
                 applyCropToImage(cropData);
-                activeCropper = null;
+                state.activeCropper = null;
             };
 
             toolsPanel.querySelectorAll('button').forEach(btn => {
@@ -66,11 +66,11 @@ function initEventListeners() {
         }
     });
     cancelCropBtn.addEventListener('click', () => {
-        if (!activeCropper || !originalImageDataUrl) return;
-        mainImage.src = originalImageDataUrl;
+        if (!state.activeCropper || !state.originalImageDataUrl) return;
+        mainImage.src = state.originalImageDataUrl;
         console.log("pres   ")
-        activeCropper.destroy();
-        activeCropper = null;
+        state.activeCropper.destroy();
+        state.activeCropper = null;
         toolsPanel.querySelectorAll('button').forEach(btn => {
             (btn as HTMLButtonElement).disabled = false;
         });
@@ -83,7 +83,7 @@ function initEventListeners() {
 
 function handleFileInput(file: File) {
     
-    resetImage();
+    resetState();
 
     if (file.size > MAX_FILE_SIZE) {
         alert(`File is too large. Max size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
@@ -100,7 +100,8 @@ function handleFileInput(file: File) {
     const temporiginal = new Image();
     temporiginal.src = objectUrl;
     temporiginal.onload = () => {
-        originalImageDataUrl = imageToDataUrl(temporiginal);
+        state.originalImageDataUrl = imageToDataUrl(temporiginal);
+        URL.revokeObjectURL(temporiginal.src); 
     }
     mainImage.src = objectUrl; 
 
@@ -142,20 +143,29 @@ function imageToDataUrl(img: HTMLImageElement): string {
     return canvas.toDataURL(state.currentFile?.type || 'image/png');
 }
 
-function resetImage() {
-    if (originalImageDataUrl) {
-        mainImage.src = originalImageDataUrl;
+function resetState() {
+    if (state.activeCropper) {
+        state.activeCropper.destroy();
     }
-    if (activeCropper) {
-        activeCropper.destroy();
-        activeCropper = null;
-    }
-    
+    mainImage.src = '';
+
+    state.activeCropper = null;
+    state.originalImageDataUrl = null;
+    state.currentCropPosition = null;
+    state.currentFile = null;
+
+    uploadContainer.classList.remove('hidden');
+    imageWrapper.classList.add('hidden');
+    fileInfoPanel.classList.add('hidden');
+    processBtn.disabled = true;
+
+    filenameDisplay.textContent = '';
+    fileTypeBadge.textContent = '';
+
     toolsPanel.querySelectorAll('button').forEach(btn => {
         (btn as HTMLButtonElement).disabled = false;
     });
-    cropBtn.textContent = 'Crop';
-    cropBtn.style.backgroundColor = '';
+    fileInput.value = '';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
