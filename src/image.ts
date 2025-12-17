@@ -1,4 +1,4 @@
-import { Cropper } from './cropper'; 
+import { Cropper } from './shared/cropper'; 
 import { checkJob, createJob, setupDropZone, uploadFile } from './shared/api';
 import { CreateJobRequest, ImageConfig, ImageFormat, JobStatusResponse, MAX_FILE_SIZE } from './shared/types';
 
@@ -112,12 +112,11 @@ function handleFileInput(file: File) {
         
         return;
     }
-    
 
     state.currentFile = file;
 
     const fileformat = file.name.split('.').pop();
-    if(['psd', 'bpm'].includes(fileformat ?? '')){
+    if(['psd', 'bpm', 'xcf','ico','gif', 'avif', 'ppm'].includes(fileformat ?? '')){
         
         unsupportedFilename.textContent = file.name;
         
@@ -167,8 +166,6 @@ async function handleImageProcessing() {
     } else {
         fileToUpload = state.currentFile;
     }
-
-
     processBtn.disabled = true;
     processBtn.textContent = 'Processing...';
     removeBtns.forEach(btn => btn.disabled = true);
@@ -212,8 +209,6 @@ function transformImage(type: 'rotate' | 'flipH' | 'flipV') {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-
-
         switch (type) {
             case 'rotate':
                 // For 90-degree rotation, swap width and height
@@ -327,7 +322,6 @@ function cancelEdits() {
     state.currentCropPosition = null;
     state.imageConfig = {};
 }
-
 
 function resetState() {
     if (state.activeCropper) {
