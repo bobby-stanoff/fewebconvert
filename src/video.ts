@@ -1,4 +1,4 @@
-import { UploadResponse, VideoAppState, VideoConfig, VideoJobRequest , JobResponse, MAX_FILE_SIZE} from './shared/types';
+import { UploadResponse, VideoConfig , JobResponse, MAX_FILE_SIZE, CreateJobRequest, JobStatusResponse} from './shared/types';
 import "./shared/api";
 import { checkJob, createJob, setupDropZone, uploadFile } from './shared/api';
 
@@ -30,14 +30,14 @@ const progressBarFill = document.getElementById('progress-bar') as HTMLElement;
 const progressStatus = document.getElementById('progress-status') as HTMLElement
 const outputUrl = document.getElementById('output-url') as HTMLElement;
 
-let state: VideoAppState = {
-  currentFile: null,
-  fileId: null,
-  videoDuration: 0,
-  config: { targetFormat: 'mp4', quality: 'medium' }, 
-  isProcessing: false,
-  isDragging: false,
-  activeHandle: null
+let state = {
+  currentFile: null as File | null,
+  fileId: null as string | null,
+  videoDuration: 0 as number,
+  config: { targetFormat: 'mp4', quality: 'medium' } as VideoConfig, 
+  isProcessing: false as boolean,
+  isDragging: false as boolean,
+  activeHandle: null as string | null
 };
 
 function initEventListeners() {
@@ -232,17 +232,17 @@ async function handleProcessing() {
   const uploadResult = await uploadFile(state.currentFile);
   if(!uploadResult.success){
     console.log("file uploaded but something wrong from the server");
+    return
   }
-  console.log(uploadResult.data);
   let videoConfig : VideoConfig = readConfigFromInputs();
-  const jobRequest: VideoJobRequest = {
+  const jobRequest: CreateJobRequest = {
     kind: 'video',
     fileId: uploadResult.data.fileId,
     operation: 'convert', 
     config: videoConfig
   };
 
-  createJob(jobRequest).then((jobResponse) => {
+  createJob(jobRequest).then((jobResponse: JobResponse) => {
     console.log("Job Started:", jobResponse);
     toggleLoading(true, `Converting...`);
 
@@ -254,7 +254,7 @@ async function handleProcessing() {
 
 async function pollJobStatus(jobId: string){
   while(true){
-    const jobstatus = await checkJob(jobId)
+    const jobstatus: JobStatusResponse = await checkJob(jobId)
     if(!jobstatus || jobstatus.error){
       console.error("something went wrong: " + jobstatus.error);
       break

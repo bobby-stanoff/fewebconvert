@@ -8,7 +8,6 @@ export interface FileMetadata {
   mimeType: string;
 }
 
-
 export type VideoFormat = 'mp4' | 'webm' | 'gif' | 'mp3';
 
 export interface VideoConfig {
@@ -23,44 +22,19 @@ export interface VideoConfig {
   muteAudio?: boolean;
 }
 
-
 export type ImageFormat = 'jpeg' | 'png' | 'webp' | 'avif';
 
 export interface ImageConfig {
-  // Conversion
   targetFormat?: ImageFormat;
-  flip?: {horizontal?: boolean},
-  rotate?: number,
-  crop?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  filters?: {
-    grayscale?: boolean;
-    sepia?: boolean;
-  };
 }
 
 
-export interface VideoJobRequest {
-  kind: 'video'; 
+export interface CreateJobRequest {
+  kind: 'video' | 'image'; 
   fileId: string;
   operation: 'convert';
-  config: VideoConfig;
+  config: VideoConfig | ImageConfig;
 }
-
-export interface ImageJobRequest {
-  kind: 'image';
-  fileId: string;
-  operation: 'convert' | 'compress' | 'resize' | 'crop';
-  config: ImageConfig;
-}
-
-export type CreateJobRequest = VideoJobRequest | ImageJobRequest;
-
-
 
 export interface UploadResponse {
   success: boolean;
@@ -81,16 +55,5 @@ export interface JobStatusResponse {
   error?: string;
 }
 
-export interface VideoAppState {
-  currentFile: File | null;
-  fileId: string | null;
-  videoDuration: number;
-  // strictly use VideoConfig here
-  config: VideoConfig; 
-
-  isProcessing: boolean;
-  isDragging: boolean;
-  activeHandle: string | null;
-}
 export const backendURL = "http://localhost:3000";
 export const MAX_FILE_SIZE = 1* 1024 *1024 * 1000;
