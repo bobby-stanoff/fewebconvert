@@ -1,6 +1,6 @@
 import { UploadResponse, VideoAppState, VideoConfig, VideoJobRequest , JobResponse, MAX_FILE_SIZE} from './shared/types';
 import "./shared/api";
-import { checkJob, createJob, uploadFile } from './shared/api';
+import { checkJob, createJob, setupDropZone, uploadFile } from './shared/api';
 
 const dropZone = document.getElementById('drop-zone') as HTMLElement;
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -41,44 +41,8 @@ let state: VideoAppState = {
 };
 
 function initEventListeners() {
-  
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-  });
 
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.add('active'); 
-      dropZone.style.borderColor = 'var(--primary)';
-      dropZone.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
-    });
-  });
-
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.remove('active');
-      dropZone.style.borderColor = ''; // reset to CSS default
-      dropZone.style.backgroundColor = '';
-    });
-  });
-
-  dropZone.addEventListener('drop', (e: DragEvent) => {
-    const dt = e.dataTransfer;
-    if (dt && dt.files && dt.files.length > 0) {
-      handleFileSelect(dt.files[0]);
-    }
-  });
-
-  dropZone.addEventListener('click', () => fileInput.click());
-  
-  fileInput.addEventListener('change', (e) => {
-    if (fileInput.files && fileInput.files.length > 0) {
-      handleFileSelect(fileInput.files[0]);
-    }
-  });
+  setupDropZone(dropZone,fileInput,(file) => handleFileSelect(file));
 
   removeBtn.addEventListener('click', () => resetState());
   

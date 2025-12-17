@@ -98,6 +98,14 @@ video {
   cursor: pointer;
   font-size: 1.5em;
 }
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.icon-btn.danger {
+  color: #ff4d4d;
+}
 .output-url {
     flex: 1;
     padding: 12px 14px;
@@ -108,15 +116,7 @@ video {
     font-family: monospace;
     font-size: 14px;
     overflow-x: auto;
-    white-space: nowrap;
     user-select: all;
-}
-.icon-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.icon-btn.danger {
-  color: #ff4d4d;
 }
 
 /* 2. The Timeline UI (CapCut Style) */
@@ -388,9 +388,24 @@ input[type="range"]::-webkit-slider-thumb {
     flex-shrink: 0;
 }
 
-/* Responsive */
+
 @media (max-width: 1024px) {
-  .workspace { grid-template-columns: 1fr; overflow-y: auto; height: auto; }
-  .video-wrapper { min-height: 500px; }
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    overflow-y: auto; 
+  }
+  .video-wrapper { min-height: 420px; }
   .container { height: auto; }
+}
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "pre"
+      "con"
+      "progress";
+  }
+  .controls-panel {
+    max-width: 100%;
+  }
 }

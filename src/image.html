@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Editor</title>
+    <link rel="stylesheet" href="./style/global.css">
+    <link rel="stylesheet" href="./style/image.css">
+</head>
+
+<body>
+
+    <nav class="nav-header">
+        <a href="./index.html" class="logo"></a>
+        <div class="nav-mode-switcher">
+            <button class="mode-btn" onclick="window.location.href='video.html'">Video</button>
+            <button class="mode-btn active">Image</button>
+        </div>
+        <div class="nav-actions">
+            <!-- Placeholder for export/profile if needed -->
+        </div>
+    </nav>
+
+    <main class="container workspace">
+
+        <!-- LEFT PANEL: Preview & Tools -->
+        <section class="preview-panel">
+
+            <!-- Drop Zone & Paste URL (Initial State) -->
+            <div id="upload-container" class="upload-container">
+                <div class="paste-url-container">
+                    <input type="text" id="url-input" placeholder="Or paste image URL here">
+                    <button id="upload-url-btn" class="btn">Upload</button>
+                </div>
+                <div id="drop-zone" class="drop-zone">
+                    <div class="icon">📂</div>
+                    <h3>Import Media</h3>
+                    <p class="text-muted">Drag & Drop or Click to Upload</p>
+                    <input type="file" id="file-input" hidden accept="image/*">
+                </div>
+            </div>
+
+            <div id="image-wrapper" class="image-wrapper hidden">
+                <!-- Image Preview -->
+                <div class="image-preview-container">
+                    <img id="main-image" src="" alt="Image preview">
+                    <div class="cancel-controls">
+                        <button id="remove-file-btn" class="icon-btn danger">✖</button>
+                    </div>
+                </div>
+
+                <!-- Tools Panel -->
+                <div class="tools-panel">
+                    <button class="tool-btn" id="crop-btn">Crop</button>
+                    <button class="tool-btn hidden" id="cancel-crop-btn">Cancel</button>
+                    <button class="tool-btn" id="rotate-btn">Rotate</button>
+                    <button class="tool-btn" id="flip-hor-btn">flip horizontal</button>
+                    <button class="tool-btn" id="flip-ver-btn">flip vertical</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Export Settings -->
+        <section class="controls-panel">
+            <div class="panel-header">
+                <h2>Export Settings</h2>
+            </div>
+
+            <div class="file-info-compact hidden" id="file-info-panel">
+                <span class="badge">PNG</span>
+                <span id="filename" class="text-ellipsis">image_sample.png</span>
+                <button id="remove-file-btn" class="text-red">✕</button>
+            </div>
+
+            <div class="form-group">
+                <label>Format</label>
+                <select id="format-select">
+                    <option value="png">PNG</option>
+                    <option value="jpeg">JPEG</option>
+                    <option value="webp">WEBP</option>
+                </select>
+            </div>
+            
+            <div class="action-area">
+                <button id="process-btn" class="btn full-width" disabled>
+                    <span>CONVERT & EXPORT</span>
+                </button>
+            </div>
+
+            <div id="done-view" class="hidden">
+                <h3>Processing Complete!</h3>
+                <div class="url-display">
+                    <span id="output-url" class="output-url">
+                        url
+                    </span>
+                    <button id="copy-url-btn" class="btn">Copy</button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script type="module" src="./image.ts"></script>
+</body>
+
+</html>
