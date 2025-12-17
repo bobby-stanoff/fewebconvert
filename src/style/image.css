@@ -183,7 +183,7 @@
     border: 1px solid var(--border);
 }
 .badge { background: #333; padding: 2px 6px; border-radius: 3px; font-size: 10px; color: #fff; }
-.text-ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+/* .text-ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; } */
 .text-red { color: var(--primary); background: none; border: none; font-weight: bold; margin-left: auto; cursor: pointer; }
 
 /* Forms */
@@ -222,6 +222,7 @@ select:focus { border-color: var(--primary); }
 
 .url-display {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
     align-items: center;
 }
