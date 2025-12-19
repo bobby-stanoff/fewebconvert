@@ -30,9 +30,14 @@ const doneView = document.getElementById('done-view') as HTMLElement;
 const outputUrlSpan = document.getElementById('output-url') as HTMLElement;
 
 const formatSelect = document.getElementById('format-select') as HTMLSelectElement;
+const copyUrlBtn = document.getElementById('copy-url-btn') as HTMLButtonElement;
+const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
 
 const unsupportedFileContainer = document.getElementById('unsupported-file-container') as HTMLElement;
 const unsupportedFilename = document.getElementById('unsupported-filename') as HTMLElement;
+
+const urlInput = document.getElementById('url-input') as HTMLInputElement;
+const uploadUrlBtn = document.getElementById('upload-url-btn') as HTMLButtonElement;
 
 const state = {
     activeCropper: null as Cropper | null,
@@ -97,6 +102,37 @@ function initEventListeners() {
     flipVerBtn.addEventListener('click', () => transformImage('flipV'));
     rotateBtn.addEventListener('click', () => transformImage('rotate'));
     processBtn.addEventListener('click', () => handleImageProcessing())
+    uploadUrlBtn.addEventListener('click',() => handleUrlUpload());
+    urlInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); 
+            handleUrlUpload();
+        }
+    });
+    copyUrlBtn.addEventListener('click', handleCopyUrl);
+    downloadBtn.addEventListener('click', handleDownload);
+}
+
+async function handleUrlUpload() {
+    const url = urlInput.value.trim();
+    if (!url) return
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch image with status: ${response.status}`);
+        }
+        const blob = await response.blob();
+        const filename = 'downloaded_image';
+
+        const imageFile = new File([blob], filename, { type: blob.type });
+
+        handleFileInput(imageFile);
+        urlInput.value = ''; 
+
+    } catch (e) {
+        console.error("Error fetching image from URL:", e);
+        alert("Could not fetch the image from the URL.");
+    }
 }
 
 function handleFileInput(file: File) {
@@ -167,6 +203,7 @@ async function handleImageProcessing() {
         fileToUpload = state.currentFile;
     }
     processBtn.disabled = true;
+    toggleResultURL(false)
     processBtn.textContent = 'Processing...';
     removeBtns.forEach(btn => btn.disabled = true);
 
@@ -199,6 +236,32 @@ async function handleImageProcessing() {
     removeBtns.forEach(btn => btn.disabled = false);
     
 }
+function handleCopyUrl() {
+    const url = outputUrlSpan.textContent;
+    if (url && navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            copyUrlBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyUrlBtn.textContent = 'Copy';
+            }, 2000); 
+        }).catch(err => {
+            console.error('Failed to copy URL: ', err);
+            alert('Failed to copy URL.');
+        });
+    }
+}
+
+async function handleDownload() {
+    const url = outputUrlSpan.textContent;
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.target = '_blank';   
+    document.body.appendChild(anchor); 
+    anchor.click();
+    document.body.removeChild(anchor);
+  
+}
+
 
 function transformImage(type: 'rotate' | 'flipH' | 'flipV') {
     if (!mainImage.src) return;
@@ -268,7 +331,7 @@ async function pollJobStatus(jobId: string){
     }
     await new Promise(resolve => setTimeout(resolve,1000))
     if(jobstatus.resultUrl){
-        updateResultURL(jobstatus.resultUrl)
+        toggleResultURL(true,jobstatus.resultUrl)
         return
     }
   }
@@ -300,8 +363,8 @@ function dataURLtoFile(dataurl: string, filename: string): File | null {
     return new File([u8arr], filename, { type: mime });
 }
 
-function updateResultURL(url: string) {
-    doneView.classList.remove('hidden');
+function toggleResultURL(show: boolean ,url: string = '') {
+    show ? doneView.classList.remove('hidden') : doneView.classList.add('hidden');
     outputUrlSpan.textContent = url;
 }
 
