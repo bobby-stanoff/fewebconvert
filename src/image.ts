@@ -109,8 +109,39 @@ function initEventListeners() {
             handleUrlUpload();
         }
     });
-    copyUrlBtn.addEventListener('click', handleCopyUrl);
-    downloadBtn.addEventListener('click', handleDownload);
+
+    copyUrlBtn.addEventListener('click', () => {
+        const url = outputUrlSpan.textContent;
+        if (url && navigator.clipboard) {
+            navigator.clipboard.writeText(url)
+        }
+    });
+    downloadBtn.addEventListener('click', ()=>{
+        const anchor = document.createElement('a');
+        anchor.href = outputUrlSpan.textContent;
+        anchor.target = '_blank';   
+        document.body.appendChild(anchor); //firefox
+        anchor.click();
+        document.body.removeChild(anchor);
+    });
+    document.addEventListener("paste", (event) => {
+        if (!event.clipboardData || !event.clipboardData.files) {
+            return;
+        }
+        const files = event.clipboardData.files;
+        let imageFile: File | null = null;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith('image/')) {
+                imageFile = files[i];
+                break; 
+            }
+        }
+
+        if (imageFile) {
+            event.preventDefault();
+            handleFileInput(imageFile);
+        }
+    })
 }
 
 async function handleUrlUpload() {
@@ -236,32 +267,6 @@ async function handleImageProcessing() {
     removeBtns.forEach(btn => btn.disabled = false);
     
 }
-function handleCopyUrl() {
-    const url = outputUrlSpan.textContent;
-    if (url && navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-            copyUrlBtn.textContent = 'Copied!';
-            setTimeout(() => {
-                copyUrlBtn.textContent = 'Copy';
-            }, 2000); 
-        }).catch(err => {
-            console.error('Failed to copy URL: ', err);
-            alert('Failed to copy URL.');
-        });
-    }
-}
-
-async function handleDownload() {
-    const url = outputUrlSpan.textContent;
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.target = '_blank';   
-    document.body.appendChild(anchor); 
-    anchor.click();
-    document.body.removeChild(anchor);
-  
-}
-
 
 function transformImage(type: 'rotate' | 'flipH' | 'flipV') {
     if (!mainImage.src) return;
