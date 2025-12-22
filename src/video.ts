@@ -1,6 +1,6 @@
-import { UploadResponse, VideoConfig , JobResponse, MAX_FILE_SIZE, CreateJobRequest, JobStatusResponse} from './shared/types';
+import { VideoConfig , MAX_FILE_SIZE, CreateJobRequest, JobStatusResponse} from './shared/types';
 import "./shared/api";
-import { checkJob, createJob, createYoutubeJob, setupDropZone, uploadFile } from './shared/api';
+import { checkJob, createJob, createYoutubeJob, downloadStreamJob, setupDropZone, uploadFile } from './shared/api';
 
 const dropZone = document.getElementById('drop-zone') as HTMLElement;
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -233,6 +233,7 @@ function handleFileSelect(file: File) {
 
   dropZone.classList.add('hidden');
   videoWrapper.classList.remove('hidden');
+  doneView.classList.add('hidden')
   processBtn.disabled = false; 
 
   console.log(`Loaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
@@ -323,8 +324,10 @@ async function handleProcessing() {
       console.error("error creating job")
       return
     };
-    toggleLoading(true, `Converting...`);  
-    pollJobStatus(jobResponse.jobId).then(e => {toggleLoading(false)});
+    toggleLoading(true, `Converting...`);
+    await pollJobStatus(jobResponse.jobId)
+    await downloadStreamJob(jobResponse.jobId)
+    toggleLoading(false)
   }
 
 }
@@ -333,6 +336,7 @@ async function pollJobStatus(jobId: string){
   while(true){
     const jobstatus: JobStatusResponse = await checkJob(jobId)
     if(!jobstatus || jobstatus.error){
+      alert("something went wrong")
       console.error("something went wrong: " + jobstatus.error);
       break
     }
@@ -343,6 +347,8 @@ async function pollJobStatus(jobId: string){
       updateProgressBar(jobstatus.progress, jobstatus.resultUrl)
       console.log(jobstatus.resultUrl);
       break;
+    }else if(jobstatus.progress >= 99){
+      break
     }
   }
 

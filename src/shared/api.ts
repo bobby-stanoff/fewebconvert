@@ -1,9 +1,9 @@
-import { UploadResponse, backendURL, CreateJobRequest, JobResponse, JobStatusResponse } from "./types";
+import { UploadResponse, BACKEND_URL, CreateJobRequest, JobResponse, JobStatusResponse } from "./types";
 export async function uploadFile(f : File) : Promise<UploadResponse> {
     const formData = new FormData();
     formData.append('file',f);
 
-    const response = await fetch(backendURL + "/api/upload",{
+    const response = await fetch(BACKEND_URL + "/api/upload",{
         method: "POST",
         body: formData
     });
@@ -16,7 +16,7 @@ export async function uploadFile(f : File) : Promise<UploadResponse> {
 }
 
 export async function createJob(j : CreateJobRequest) : Promise<JobResponse>{
-    const response = await fetch(backendURL + "/api/jobs", {
+    const response = await fetch(BACKEND_URL + "/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(j)
@@ -29,7 +29,7 @@ export async function createJob(j : CreateJobRequest) : Promise<JobResponse>{
 }
 
 export async function checkJob(jid: String) : Promise<JobStatusResponse>{
-    const response = await fetch(backendURL + `/api/jobs/${jid}`)
+    const response = await fetch(BACKEND_URL + `/api/jobs/${jid}`)
     if(response.status !== 200){
         console.error(`job ${jid} not found`)
         throw new Error(`process failed, file not found`)
@@ -37,7 +37,7 @@ export async function checkJob(jid: String) : Promise<JobStatusResponse>{
     return response.json()
 }
 export async function createYoutubeJob(j: CreateJobRequest){
-    const response = await fetch(backendURL + "/api/youtube/jobs", {
+    const response = await fetch(BACKEND_URL + "/api/youtube/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(j)
@@ -46,7 +46,25 @@ export async function createYoutubeJob(j: CreateJobRequest){
         console.error(response.statusText)
         throw new Error("something went wrong")
     }
+    
     return response.json()
+}
+export async function downloadStreamJob(jobId: string) {
+  const url = `${BACKEND_URL}/api/jobs/${jobId}/download`;
+  const res = await fetch(`${BACKEND_URL}/api/hasstream`);
+  if (res.status === 404) {
+    console.log("notok: " + url + res.status + res.ok)
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = url;
+  link.style.display = 'none';
+
+  document.body.appendChild(link);
+  link.click();
+  console.log("click")
+  document.body.removeChild(link);
+
 }
 export function setupDropZone(dropZoneElement: HTMLElement, fileInputElement: HTMLInputElement,  onFileSelected: (file: File) => void) {
 

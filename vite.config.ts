@@ -6,7 +6,7 @@ export default defineConfig({
     outDir: "../dist",   // output outside src
     rollupOptions: {
       input: {
-        index: "./src/index.html",
+        image: "./src/image.html",
         video: "./src/video.html",
       },
     },

@@ -55,5 +55,5 @@ export interface JobStatusResponse {
   error?: string;
 }
 
-export const backendURL = "http://localhost:3000";
+export const BACKEND_URL = "http://localhost:3000";
 export const MAX_FILE_SIZE = 1* 1024 *1024 * 1000;
