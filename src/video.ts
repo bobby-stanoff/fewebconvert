@@ -1,13 +1,13 @@
 import { UploadResponse, VideoConfig , JobResponse, MAX_FILE_SIZE, CreateJobRequest, JobStatusResponse} from './shared/types';
 import "./shared/api";
-import { checkJob, createJob, setupDropZone, uploadFile } from './shared/api';
+import { checkJob, createJob, createYoutubeJob, setupDropZone, uploadFile } from './shared/api';
 
 const dropZone = document.getElementById('drop-zone') as HTMLElement;
 const fileInput = document.getElementById('file-input') as HTMLInputElement;
 const videoWrapper = document.getElementById('video-wrapper') as HTMLElement;
 const mainVideo = document.getElementById('main-video') as HTMLVideoElement;
 const filenameDisplay = document.getElementById('filename') as HTMLElement;
-const removeBtn = document.getElementById('remove-file-btn') as HTMLButtonElement;
+const removeBtns = document.querySelectorAll('.remove-file-btn') as NodeListOf<HTMLButtonElement>;
 const processBtn = document.getElementById('process-btn') as HTMLButtonElement;
 
 const formatSelect = document.getElementById('format-select') as HTMLSelectElement;
@@ -30,9 +30,15 @@ const progressBarFill = document.getElementById('progress-bar') as HTMLElement;
 const progressStatus = document.getElementById('progress-status') as HTMLElement
 const outputUrl = document.getElementById('output-url') as HTMLElement;
 
+const urlInput = document.getElementById('url-input') as HTMLInputElement;
+const uploadUrlBtn = document.getElementById('upload-url-btn') as HTMLButtonElement;
+
+const embedcontainer = document.getElementById('unsupported-file-container') as HTMLElement;
+const iframe = document.getElementById('youtube-embed') as HTMLIFrameElement
 let state = {
   currentFile: null as File | null,
-  fileId: null as string | null,
+  youtubeMode: false as boolean,
+  currentYoutubeLink: "" as string,
   videoDuration: 0 as number,
   config: { targetFormat: 'mp4', quality: 'medium' } as VideoConfig, 
   isProcessing: false as boolean,
@@ -44,7 +50,7 @@ function initEventListeners() {
 
   setupDropZone(dropZone,fileInput,(file) => handleFileSelect(file));
 
-  removeBtn.addEventListener('click', () => resetState());
+  removeBtns.forEach(removeBtn => removeBtn.addEventListener('click', () => resetState()));
   
   qualitySlider.addEventListener('input', () => {
     const labels = ['Low', 'Medium', 'High'];
@@ -159,6 +165,15 @@ function initEventListeners() {
   });
 
   processBtn.addEventListener('click', () => {handleProcessing()})
+
+  uploadUrlBtn.addEventListener('click',() => handleVideoUrl());
+  urlInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+          event.preventDefault(); 
+          handleVideoUrl();
+      }
+  });
+  
 }
 
 function updateTimelineUI() {
@@ -223,32 +238,94 @@ function handleFileSelect(file: File) {
   console.log(`Loaded: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 }
 
+
+async function handleVideoUrl() {
+    const url = urlInput.value.trim();
+    if (!url) return
+    const ytRegex =
+        /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/|embed\/)|youtu\.be\/)/i;
+    const isYouTubeUrl =  ytRegex.test(url);
+    if (isYouTubeUrl) {
+      
+      handleYouTubeLink(url);
+      urlInput.value = '';
+      return;
+    }
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch video with status: ${response.status}`);
+        }
+        const blob = await response.blob();
+        const filename = 'downloaded_video';
+
+        const videoFile = new File([blob], filename, { type: blob.type });
+
+        handleFileSelect(videoFile);
+        urlInput.value = ''; 
+
+    } catch (e) {
+        
+    }
+}
+
+function handleYouTubeLink(url : string) {
+    const match = url.match(
+        /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
+    const videoId = match ? match[1] : null;
+    if (!videoId) return;
+
+    iframe.src = `https://www.youtube.com/embed/${videoId}`;
+    embedcontainer.classList.remove('hidden');
+    dropZone.classList.add('hidden');
+    state.youtubeMode = true;
+    state.currentYoutubeLink = url;
+    processBtn.disabled = false; 
+
+}
+
 async function handleProcessing() {
-  if(state.currentFile == null){
-    return
-  }
+  
   toggleLoading(true, "Uploading...");
-
-  const uploadResult = await uploadFile(state.currentFile);
-  if(!uploadResult.success){
-    console.log("file uploaded but something wrong from the server");
-    return
-  }
   let videoConfig : VideoConfig = readConfigFromInputs();
-  const jobRequest: CreateJobRequest = {
-    kind: 'video',
-    fileId: uploadResult.data.fileId,
-    operation: 'convert', 
-    config: videoConfig
-  };
-
-  createJob(jobRequest).then((jobResponse: JobResponse) => {
-    console.log("Job Started:", jobResponse);
-    toggleLoading(true, `Converting...`);
-
+  if(state.currentFile){
+    const uploadResult = await uploadFile(state.currentFile);
+    if(!uploadResult.success){
+      console.log("file uploaded but something wrong from the server");
+      return
+    }
+    const jobRequest: CreateJobRequest = {
+      kind: 'video',
+      fileId: uploadResult.data.fileId,
+      operation: 'convert', 
+      config: videoConfig
+    };
+    
+    const jobResponse = await createJob(jobRequest);
+    if(!jobResponse.success){
+      console.error("error creating job")
+      return
+    };
+    toggleLoading(true, `Converting...`);  
     pollJobStatus(jobResponse.jobId).then(e => {toggleLoading(false)});
-
-  }).catch(e => console.error(e));
+ 
+  }
+  if(state.youtubeMode){
+    const jobRequest: CreateJobRequest = {
+      kind: 'youtube',
+      fileId: state.currentYoutubeLink,
+      operation: 'convert',
+      config: videoConfig
+    }
+    const jobResponse = await createYoutubeJob(jobRequest);
+    if(!jobResponse.success){
+      console.error("error creating job")
+      return
+    };
+    toggleLoading(true, `Converting...`);  
+    pollJobStatus(jobResponse.jobId).then(e => {toggleLoading(false)});
+  }
 
 }
 
@@ -298,17 +375,18 @@ function readConfigFromInputs(): VideoConfig {
 function toggleLoading(isLoading: boolean, text?: string) {
   state.isProcessing = isLoading;
   processBtn.disabled = isLoading;
-  removeBtn.disabled = isLoading;
+  removeBtns.forEach(removeBtn => removeBtn.disabled = isLoading);
+  
   if (text) processBtn.textContent = text;
   else processBtn.textContent = "Start Processing";
 }
 
 function resetState() {
   state.currentFile = null;
-  state.fileId = null;
   mainVideo.src = '';
   fileInput.value = ''; 
-
+  state.youtubeMode = false;
+  embedcontainer.classList.add('hidden');
   videoWrapper.classList.add('hidden');
   dropZone.classList.remove('hidden');
   processBtn.disabled = true;

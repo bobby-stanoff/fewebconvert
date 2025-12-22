@@ -22,15 +22,33 @@
 
         <!-- LEFT PANEL: Preview & Timeline -->
         <section class="preview-panel">
-
-            <!-- Drop Zone (Initial State) -->
-            <div id="drop-zone" class="drop-zone">
-                <div class="icon">📂</div>
-                <h3>Import Media</h3>
-                <p class="text-muted">Drag & Drop or Click to Upload</p>
-                <input type="file" id="file-input" hidden accept="video/*">
+            <div id="upload-container" class="upload-container">
+                <div class="paste-url-container">
+                    <input type="text" id="url-input" autofocus placeholder="Paste Youtube link here">
+                    <button id="upload-url-btn" class="btn">Upload</button>
+                </div>
+                <div id="drop-zone" class="drop-zone">
+                    <div class="icon">📂</div>
+                    <h3>Import Media</h3>
+                    <p class="text-muted">Drag & Drop or Click to Upload</p>
+                    <input type="file" id="file-input" hidden accept="video/*">
+                </div>
             </div>
 
+            <div id="unsupported-file-container" class="unsupported-file-container hidden ">
+                <iframe id="youtube-embed" width="100%" height="315" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+
+                <p class="info-message">
+                    YouTube videos can’t be edited (coming soon)
+                </p>
+
+                <div class="cancel-controls">
+                    <button id="remove-unsupported-btn" class="remove-file-btn icon-btn danger">✖</button>
+                </div>
+            </div>
             <div id="video-wrapper" class="video-wrapper hidden">
                 <!-- Video Player -->
                 <div class="player-container">
@@ -97,7 +115,7 @@
 
             <div class="form-group">
                 <div class="range-header">
-                    <label>Compression</label>
+                    <label>quality</label>
                     <span id="quality-val" class="highlight-text">Medium</span>
                 </div>
                 <input type="range" id="compression-slider" min="1" max="3" step="1" value="2">

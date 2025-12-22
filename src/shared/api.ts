@@ -35,10 +35,19 @@ export async function checkJob(jid: String) : Promise<JobStatusResponse>{
         throw new Error(`process failed, file not found`)
     }
     return response.json()
-
-
 }
-
+export async function createYoutubeJob(j: CreateJobRequest){
+    const response = await fetch(backendURL + "/api/youtube/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(j)
+    })
+    if(response.status !== 202){
+        console.error(response.statusText)
+        throw new Error("something went wrong")
+    }
+    return response.json()
+}
 export function setupDropZone(dropZoneElement: HTMLElement, fileInputElement: HTMLInputElement,  onFileSelected: (file: File) => void) {
 
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {

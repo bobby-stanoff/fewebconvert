@@ -30,7 +30,7 @@ export interface ImageConfig {
 
 
 export interface CreateJobRequest {
-  kind: 'video' | 'image'; 
+  kind: 'video' | 'image' | 'youtube'; 
   fileId: string;
   operation: 'convert';
   config: VideoConfig | ImageConfig;
