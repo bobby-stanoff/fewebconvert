@@ -61,31 +61,19 @@ a { text-decoration: none; color: inherit; }
     box-shadow: none;
     cursor: not-allowed;
 }
-
 .nav-header {
   height: var(--header-height);
   border-bottom: 1px solid var(--border);
   padding: 0 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center; 
   align-items: center;
   background: var(--bg-dark);
 }
 
-.logo { 
-    font-size: 1.25rem; 
-    font-weight: 800; 
-    color: white; 
-    letter-spacing: -0.5px;
-}
-.logo::after {
-    content: '.';
-    color: var(--primary);
-}
-
-/* Navbar Tabs */
 .nav-mode-switcher {
     display: flex;
+    width: 50%; 
     background: var(--bg-panel);
     padding: 4px;
     border-radius: var(--radius);
@@ -93,14 +81,16 @@ a { text-decoration: none; color: inherit; }
 }
 
 .mode-btn {
+    flex: 1;
     background: transparent;
     border: none;
     color: var(--text-muted);
-    padding: 6px 20px;
+    padding: 6px 0;
     border-radius: 4px;
     font-weight: 600;
     cursor: pointer;
     transition: 0.2s;
+    text-align: center;
 }
 
 .mode-btn.active {
