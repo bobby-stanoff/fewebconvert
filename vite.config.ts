@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: '/fewebconvert/',
   root: "src",
   build: {
     outDir: "../dist",   // output outside src
