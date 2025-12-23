@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/fewebcontent/",
   root: "src",
   build: {
     outDir: "../dist",   // output outside src
