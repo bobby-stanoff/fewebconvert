@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx vite build --emptyOutDir",
+    "build": "npx vite build --emptyOutDir --mode production",
     "startbuild" : "npm run build && python3 -m http.server -d dist/",
     "dev" : "npx vite"
   },
